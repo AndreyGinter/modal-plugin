@@ -28,6 +28,10 @@ function _createModal (options) {
 $.modal = function(options) {
     const ANIMATION_SPEED = 200
     const $modal = _createModal(options)
+    const onClose = options.onClose ? options.onClose : () => false
+    const onOpen = options.onOpen ? options.onOpen : () => false
+    const beforeClose = options.beforeClose ? options.beforeClose : () => true
+
     let isClosing = false
     let isOpen = false
 
@@ -63,19 +67,7 @@ $.modal = function(options) {
     }
 
     function checkModalStatus () {
-        isOpen ? onOpen() : onClose()
-
-        function onClose () {
-            console.log('Модальное окно закрыто')
-        }
-
-        function onOpen () {
-            console.log('Модальное окно открыто')
-        }    
-    }
-
-    function beforeClose () {
-        return true
+        isOpen ? onOpen() : onClose() 
     }
     
     return {
