@@ -21,7 +21,6 @@
 }
 
 .imodal.hiding .modal__overlay {
-    z-index: -1;
     background: rgba(0, 0, 0, .0);
 }
 
@@ -42,7 +41,6 @@
 
 .modal__window {
     position: relative;
-    width: 660px;
     padding: 24px;
     margin: 100px auto;
     background: #fff;

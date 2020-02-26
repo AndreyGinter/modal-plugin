@@ -1,23 +1,26 @@
 function _createModal (options) {
     const modal = document.createElement('div')
+    const content = options.content || ''
+    const width = options.width || '660px'
+    const title = options.title || 'iBox'
+    const closable = options.closable ? `<button modal-close="" class="modal__close">&times;</button>` : ''
+
     modal.classList.add('imodal')
     modal.insertAdjacentHTML('beforeend', `
-        <div class="modal__overlay">
-            <div class="modal__window">
+        <div modal-close="" class="modal__overlay">
+            <div class="modal__window" style="width:${width}">
                 <div class="modal__header">
-                    <h3 class="modal__title">Lorem ipsum dolor sit amet.</h3>
-                    <button class="modal__close">&times;</button>
+                    <h3 class="modal__title">${title}</h3>
+                    ${closable}
                 </div>
                 <div class="modal__body">
-                    <p>Lorem ipsum dolor sit.</p>
-                    <p>Lorem ipsum dolor sit.</p>
+                   ${content}
                 </div>
                 <div class="modal__footer"> 
                     <button class="modal__button">Ok</button>
-                    <button class="modal__button">Close</button></div>
+                    <button modal-close="" class="modal__button">Close</button></div>
                 </div>
         </div>`)
-
     document.body.appendChild(modal)
     return modal
 }
@@ -26,21 +29,67 @@ $.modal = function(options) {
     const ANIMATION_SPEED = 200
     const $modal = _createModal(options)
     let isClosing = false
+    let isOpen = false
 
+    addClosingEventToButtons()
+    checkModalStatus()
+
+    function addClosingEventToButtons () {
+        const closeButtons = $modal.querySelectorAll('[modal-close]')
+
+        for (const button of closeButtons) {
+            button.addEventListener('click', closeModal)
+        }
+    }
+
+    function closeModal () {
+        isClosing = true
+        $modal.classList.add('hiding')
+        $modal.classList.remove('open')
+
+        setTimeout(() => {
+            $modal.classList.remove('hiding')
+            isClosing = false
+            isOpen = false
+            checkModalStatus()
+
+        }, ANIMATION_SPEED)
+    }
+
+    function openModal () {
+        !isClosing && $modal.classList.add('open')
+        isOpen = true
+        checkModalStatus()
+    }
+
+    function checkModalStatus () {
+        isOpen ? onOpen() : onClose()
+
+        function onClose () {
+            console.log('Модальное окно закрыто')
+        }
+
+        function onOpen () {
+            console.log('Модальное окно открыто')
+        }    
+    }
+
+    function beforeClose () {
+        return true
+    }
+    
     return {
         open () {
-            !isClosing && $modal.classList.add('open')
+            openModal ()
         },
         close () {
-            isClosing = true
-            $modal.classList.add('hiding')
-            $modal.classList.remove('open')
-
-            setTimeout(() => {
-                $modal.classList.remove('hiding')
-                isClosing = false
-            }, ANIMATION_SPEED)
+            beforeClose() && closeModal ()
         },
-        destroy () {}
+        destroy () {
+            $modal.remove()
+        },
+        setContent(html) {
+            $modal.querySelector('.modal__body').innerHTML = html
+        }
     }
 }

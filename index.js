@@ -1,1 +1,3 @@
-const modal = $.modal()
+const modal = $.modal({
+    closable: true
+})
