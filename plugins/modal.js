@@ -1,27 +1,61 @@
-function _createModal (options) {
+Element.prototype.appendAfter = function(element) {
+    element.parentNode.insertBefore(this, element.nextSibling)
+}
+
+function noop() {
+
+}
+
+function _createModalFooter (buttons = []) {
+    if(buttons.length === 0) {
+        return ''
+    }
+
+    const wrap = document.createElement('div')
+    wrap.classList.add('modal__footer')
+
+    buttons.forEach(btn => {
+        const $btn = document.createElement('btn')
+        $btn.textContent = btn.text
+        $btn.classList.add('btn')
+        $btn.classList.add(`btn-${btn.type || 'secondary'}`)
+        $btn.onclick = btn.handler || noop
+        
+        wrap.appendChild($btn)
+    })
+
+    return wrap
+}
+
+function _createModal(options) {
+    const DEFAULT_WIDTH = '660px'
     const modal = document.createElement('div')
     const content = options.content || ''
-    const width = options.width || '660px'
+    const width = options.width || DEFAULT_WIDTH
     const title = options.title || 'iBox'
-    const closable = options.closable ? `<button modal-close="" class="modal__close">&times;</button>` : ''
+    const closable = options.closable ? `<button data-close="true" class="modal__close">&times;</button>` : ''
 
     modal.classList.add('imodal')
     modal.insertAdjacentHTML('beforeend', `
-        <div modal-close="" class="modal__overlay">
+        <div data-close="true" class="modal__overlay">
             <div class="modal__window" style="width:${width}">
                 <div class="modal__header">
-                    <h3 class="modal__title">${title}</h3>
+                    <h3 class="modal__title" data-title>${title}</h3>
                     ${closable}
                 </div>
-                <div class="modal__body">
+                <div class="modal__body" data-content>
                    ${content}
                 </div>
-                <div class="modal__footer"> 
-                    <button class="modal__button">Ok</button>
-                    <button modal-close="" class="modal__button">Close</button></div>
-                </div>
+            </div>
         </div>`)
+    
+    const footer = _createModalFooter(options.footerButtons)
+    if(footer) {
+        footer.appendAfter(modal.querySelector('[data-content]'))
+    }
+
     document.body.appendChild(modal)
+    
     return modal
 }
 
@@ -34,54 +68,60 @@ $.modal = function(options) {
 
     let isClosing = false
     let isOpen = false
+    let isDestroyed = false
 
-    addClosingEventToButtons()
-    checkModalStatus()
+    const modal = {
+        open () {
+            if(isDestroyed) {
+               return console.log('Modal has been destroyed')
+            }
 
-    function addClosingEventToButtons () {
-        const closeButtons = $modal.querySelectorAll('[modal-close]')
-
-        for (const button of closeButtons) {
-            button.addEventListener('click', closeModal)
+            !isClosing && $modal.classList.add('open')
+            isOpen = true
+            checkModalStatus()
+        },
+        close () {
+            if(beforeClose()){
+                isClosing = true
+                $modal.classList.add('hiding')
+                $modal.classList.remove('open')
+        
+                setTimeout(() => {
+                    $modal.classList.remove('hiding')
+                    isClosing = false
+                    isOpen = false
+                    checkModalStatus()
+        
+                }, ANIMATION_SPEED)
+            }
         }
     }
 
-    function closeModal () {
-        isClosing = true
-        $modal.classList.add('hiding')
-        $modal.classList.remove('open')
+    checkModalStatus()
 
-        setTimeout(() => {
-            $modal.classList.remove('hiding')
-            isClosing = false
-            isOpen = false
-            checkModalStatus()
+    $modal.addEventListener('click', closeModalListener)
 
-        }, ANIMATION_SPEED)
-    }
-
-    function openModal () {
-        !isClosing && $modal.classList.add('open')
-        isOpen = true
-        checkModalStatus()
-    }
+    function closeModalListener (event) {
+        if(event.target.dataset.close) {     
+            modal.close()
+        }
+    } 
 
     function checkModalStatus () {
         isOpen ? onOpen() : onClose() 
     }
     
-    return {
-        open () {
-            openModal ()
-        },
-        close () {
-            beforeClose() && closeModal ()
-        },
-        destroy () {
-            $modal.remove()
+    return Object.assign(modal, {
+        destroy() {
+            $modal.parentNode.removeChild($modal)
+            $modal.removeEventListener('click', closeModalListener)
+            isDestroyed = true
         },
         setContent(html) {
-            $modal.querySelector('.modal__body').innerHTML = html
+            $modal.querySelector('[data-content]').innerHTML = html
+        },
+        setTitle(html) {
+            $modal.querySelector('[data-title]').innerHTML = html
         }
-    }
+    })
 }
