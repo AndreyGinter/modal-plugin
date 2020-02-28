@@ -62,7 +62,7 @@ function _createModal(options) {
 $.modal = function(options) {
     const ANIMATION_SPEED = 200
     const $modal = _createModal(options)
-    const onClose = options.onClose ? options.onClose : () => false
+    const onClose = typeof options.onClose === 'function' ? options.onClose : () => false
     const onOpen = options.onOpen ? options.onOpen : () => false
     const beforeClose = options.beforeClose ? options.beforeClose : () => true
 
@@ -96,8 +96,6 @@ $.modal = function(options) {
             }
         }
     }
-
-    checkModalStatus()
 
     $modal.addEventListener('click', closeModalListener)
 

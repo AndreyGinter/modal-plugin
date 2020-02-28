@@ -1,6 +1,6 @@
 .imodal.open .modal__window {
     transform: translateY(0);
-    transition: transform .25s ease-out;
+    transition: transform .2s ease-out;
 }
 
 .imodal.open .modal__overlay {
@@ -36,7 +36,7 @@
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, .0);
-    transition: background 0.25s linear;
+    transition: background 0.2s linear;
 }
 
 .modal__window {
